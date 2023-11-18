@@ -27,7 +27,7 @@ function getColumnLetter(columnNumber) {
     }
     return columnLetter;
 }
-app.post("/AddFrom",async (req,res) =>{
+app.post("/addFrom",async (req,res) =>{
     try {
         // checking if incomming request in valid
         const{questions,description,title} = req.body;

@@ -19,4 +19,6 @@ async function connect(){
 } 
 connect();
 app.use("/form",require("./controllers/FormController"));
+app.use("/response",require("./controllers/ResponseController"));
+
 app.listen(port, () => console.log('Server started on port:'+ port));

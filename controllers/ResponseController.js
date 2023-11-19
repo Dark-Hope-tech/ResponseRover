@@ -4,9 +4,11 @@ const Form  = require("../models/Form");
 const {google} = require('googleapis');
 const {Answer,answerModel} = require("../models/Answer");
 const Response = require("../models/Response");
+const dotenv = require("dotenv").config();
+const rules =  require("../rules/addedRules");
+
 function getCurrentDateInNumberFormat() {
     const currentDate = new Date();
-    console.log(currentDate.getMonth());
     const formattedMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
     const formattedDay = currentDate.getDate().toString().padStart(2, '0');
     const formattedYear = currentDate.getFullYear().toString().slice(-2); // Get the last two digits
@@ -33,23 +35,34 @@ app.post("/addResponse",async(req,res) =>{
             return res
                 .status(400)
                 .json({errorMessage: "Please enter all details"});
+        
+        //checking if phoneNumber is valid
+        if(phoneNumber.length != 13)
+            return res.status(400)
+                    .json({errorMessage: "Phone Number is invalid"});
 
         const existingForm = await Form.findOne({   title: formTitle });
+        if(existingForm.rule != "None"){
+            const rule =  existingForm.rule;
+            if(rules[rule]){
+                try{
+                    if(rules[rule](existingForm,answers) === false)
+                        return res.status(400)
+                                    .json({errorMessage: "Entered Values are wrong"});
+                    else console.log("Values are right");
+                }catch (error) {
+                    res.status(500).json({ error: 'Error executing the function' });
+                }
+            } else {
+                res.status(400).json({ error: 'Function not allowed' });
+            }
+        }
         if(!existingForm)
             return res
                     .status(400)
                     .json({errorMessage :"No form with this title exist"});
 
         const date = new Date();
-        console.log(
-            answers.map((answerData) => {
-                const AnswerInstance = answerModel(
-                  answerData.questionId,
-                  answerData.text
-                );
-                return AnswerInstance;
-            })
-        );
         const newResponse = new Response({
             id:getCurrentDateInNumberFormat(),
             formTitle : formTitle,
@@ -96,6 +109,28 @@ app.post("/addResponse",async(req,res) =>{
             },
         });
 
+        const accountSid = process.env.TWILIO_SID;
+        const authToken = process.env.TWILIO_TOKEN;
+        const clientTwilio = require('twilio')(accountSid, authToken);
+
+
+        let messageBody = "Here is Your Response \n";
+        for(let i=0;i<answers.length;i++){
+            messageBody += existingForm.questions[i].text + "\nYou Answered :" + answers[i].text +"\n";
+        }
+        console.log(messageBody);
+        clientTwilio.messages
+            .create({
+                body : messageBody,
+                from: '+15416123430',
+                to: phoneNumber
+            })
+            .then(message => {
+                console.log(message.sid);
+            })
+            .catch(err => {
+                console.error(err);
+            });
         await newResponse.save();
         res.send(true);
         console.log("done");

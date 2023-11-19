@@ -5,6 +5,7 @@ const Form  = require("../models/Form");
 const {google} = require('googleapis');
 
 
+
 function getCurrentDateInNumberFormat() {
     const currentDate = new Date();
     console.log(currentDate.getMonth());
@@ -36,7 +37,7 @@ app.post("/addFrom",async (req,res) =>{
                 .status(400)
                 .json({errorMessage: "Please enter all details"});
         }
-
+        
         //checking if there is already a form with same title
         const existingForm = await Form.findOne({ title: title });
         if (existingForm) {
@@ -57,6 +58,7 @@ app.post("/addFrom",async (req,res) =>{
               }),
             description:description,
             title:title,
+            rule: req.body.rule? req.body.rule:"None",
             createdAt: date.toDateString()
         });
 

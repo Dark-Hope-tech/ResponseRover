@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 // const router = express.Router();
 const port = 8000;
-const uri="mongodb+srv://iit2020180:Tabish1382000@cluster0.rhesiqc.mongodb.net/?retryWrites=true&w=majority"
+const uri=process.env.MDB_CONNECT;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -20,5 +20,4 @@ async function connect(){
 connect();
 app.use("/form",require("./controllers/FormController"));
 app.use("/response",require("./controllers/ResponseController"));
-
 app.listen(port, () => console.log('Server started on port:'+ port));

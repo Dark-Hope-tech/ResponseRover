@@ -9,6 +9,7 @@ const FormSchema = new mongoose.Schema({
   }],
    description: {type: String, required: true},
    title:{type: String, required:true},
+   rule:{type: String},
    createdAt: {type: String}
 });
 
